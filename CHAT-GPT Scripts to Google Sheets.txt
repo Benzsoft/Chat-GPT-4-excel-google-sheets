@@ -1,0 +1,32 @@
+CHAT-GPT TO GOOGLE SHEET SCRIPT BY Rubbens Boisguene - 2023
+const OPENAI_API_KEY = "Your_KEY";
+const OPENAI_API_URL = "https://api.openai.com/v1/completions";
+
+function GPT3(prompt, temperature, model, maxTokens) {
+  if (!prompt || temperature < 0 || temperature > 1 || maxTokens < 1 || maxTokens > 4000) return "Error: Invalid Parameters";
+  temperature = temperature || 0.6;
+  model = model || "text-davinci-002";
+  maxTokens = maxTokens || 256;
+  var data = {prompt, temperature, model, max_tokens: maxTokens};
+  var options = {method: "post", contentType: "application/json", payload: JSON.stringify(data), headers: {"Authorization": `Bearer ${OPENAI_API_KEY}`, "Content-Type": "application/json"}};
+  try {
+    var response = UrlFetchApp.fetch(OPENAI_API_URL, options);
+    var json = JSON.parse(response.getContentText());
+    return json.choices[0].text.trim();
+  } catch (error) {
+    return "Error: " + error.toString();
+  }
+}
+
+function GPT3_RANGE(examples_input, examples_output, input, temperature, model, maxTokens) {
+  if (!input || !examples_input || !examples_output || examples_input.length !== examples_output.length) return "Error: Invalid Parameters";
+  temperature = temperature || 0.6;
+  model = model || "text-davinci-002";
+  maxTokens = maxTokens || 256;
+  var prompt = "I am an input/output bot. Given example inputs, I identify the pattern and produce the associated outputs.\n\n";
+  for (var i = 0; i < examples_input.length; i++) {
+    prompt += "Input: " + examples_input[i][0] + "\nOutput: " + examples_output[i][0] + "\n\n";
+  }
+  prompt += "Input: " + input + "\nOutput:";
+  return GPT3(prompt, temperature, model, maxTokens);
+}
